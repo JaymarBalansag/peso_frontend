@@ -1,11 +1,24 @@
-<script setup></script>
+<script setup>
+import { ref } from 'vue'
+import AppSidebar from '@/components/layout/AppSidebar.vue'
+import AppTopbar from '@/components/layout/AppTopbar.vue'
+import DashboardView from '@/views/DashboardView.vue'
+
+const menuOpen = ref(false)
+const search = ref('')
+
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <div v-if="menuOpen" class="scrim" @click="menuOpen = false" />
+  <AppSidebar :open="menuOpen" @close="menuOpen = false" />
+
+  <div class="main">
+    <AppTopbar v-model:search="search" @toggle-menu="menuOpen = true" />
+    <main class="content">
+      <DashboardView :search="search" />
+    </main>
+  </div>
 </template>
 
 <style scoped></style>

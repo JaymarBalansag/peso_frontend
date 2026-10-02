@@ -1,0 +1,89 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+h1 { font-size: 1.4rem; margin: 0; }
+h2 { font-size: 1rem; margin: 0; }
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.muted { color: var(--muted); }
+.min-w-0 { min-width: 0; }
+
+/* Color tones: set --tone / --tone-soft for any child that uses them */
+.tone-primary { --tone: var(--primary); --tone-soft: var(--primary-soft); }
+.tone-green   { --tone: var(--green);   --tone-soft: var(--green-soft); }
+.tone-amber   { --tone: var(--amber);   --tone-soft: var(--amber-soft); }
+.tone-red     { --tone: var(--red);     --tone-soft: var(--red-soft); }
+.tone-violet  { --tone: var(--violet);  --tone-soft: var(--violet-soft); }
+.tone-cyan    { --tone: var(--cyan);    --tone-soft: var(--cyan-soft); }
+.tone-gray    { --tone: var(--gray);    --tone-soft: var(--gray-soft); }
+
+.panel {
+  height: 100%;
+  padding: 1.15rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.btn-app {
+  padding: 0.5rem 0.9rem;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.btn-app--ghost { background: var(--surface); color: var(--text); border: 1px solid var(--line); }
+.btn-app--ghost:hover { background: var(--bg); }
+.btn-app--sm { padding: 0.25rem 0.6rem; }
+
+.chip {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 99px;
+  background: var(--tone-soft);
+  color: var(--tone);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--tone, var(--violet));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.meter { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.meter__fill { height: 100%; border-radius: 99px; background: var(--tone); transition: width 0.6s; }
+
+.segmented { display: inline-flex; padding: 3px; background: var(--bg); border-radius: 10px; }
+.segmented button {
+  padding: 0.3rem 0.7rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.segmented button.is-active { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
