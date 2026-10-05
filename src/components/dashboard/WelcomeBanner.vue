@@ -9,7 +9,7 @@ const today = new Date().toLocaleDateString('en-PH', {
 <template>
   <section class="banner d-flex flex-wrap align-items-center justify-content-between gap-3">
     <div>
-      <h1>Magandang araw, {{ name }}! 👋</h1>
+      <h1>Welcome sir, {{ name }}!</h1>
       <p>{{ today }} · {{ pending }} new applications are waiting for screening.</p>
     </div>
     <button class="btn-app">Review applications</button>

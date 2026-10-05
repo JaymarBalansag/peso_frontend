@@ -15,8 +15,7 @@ defineProps({
     <div>
       <div class="muted">{{ label }}</div>
       <div class="stat__value">{{ value.toLocaleString() }}</div>
-      <span class="trend" :class="up ? 'trend--up' : 'trend--down'">{{ up ? '▲' : '▼' }} {{ trend }}%</span>
-      <small class="muted d-none d-sm-inline"> vs last month</small>
+
     </div>
   </div>
 </template>

@@ -10,13 +10,6 @@ export const navigation = [
     { name: 'Interviews', icon: '🗓️' },
     { name: 'Referrals & Placement', icon: '🤝' }
   ] },
-  { label: 'Programs', items: [
-    { name: 'Job Vacancies', icon: '📌' },
-    { name: 'Employers', icon: '🏢' },
-    { name: 'SPES', icon: '🎓' },
-    { name: 'Emergency Employment', icon: '🛠️' },
-    { name: 'Job Fairs', icon: '🎪' }
-  ] },
   { label: 'System', items: [
     { name: 'Users & Roles', icon: '🔐' },
     { name: 'Settings', icon: '⚙️' }

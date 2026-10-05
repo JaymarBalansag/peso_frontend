@@ -1,41 +1,8 @@
 export const stats = [
-  { label: 'Total Applicants', value: 4820, trend: 8.2, up: true, icon: '🧑‍💼', tone: 'primary' },
-  { label: 'New Applications', value: 126, trend: 12.4, up: true, icon: '📥', tone: 'amber' },
-  { label: 'For Interview', value: 214, trend: 2.1, up: false, icon: '🗓️', tone: 'violet' },
-  { label: 'Placed / Hired', value: 1038, trend: 6.7, up: true, icon: '✅', tone: 'green' }
-]
-
-export const pipeline = [
-  { name: 'New', value: 126, tone: 'primary' },
-  { name: 'Screening', value: 184, tone: 'amber' },
-  { name: 'Interview', value: 214, tone: 'violet' },
-  { name: 'Referred', value: 97, tone: 'cyan' },
-  { name: 'Placed', value: 171, tone: 'green' }
-]
-
-const last6 = [
-  { month: 'Apr', received: 210, placed: 96 },
-  { month: 'May', received: 245, placed: 120 },
-  { month: 'Jun', received: 190, placed: 88 },
-  { month: 'Jul', received: 268, placed: 140 },
-  { month: 'Aug', received: 290, placed: 152 },
-  { month: 'Sep', received: 255, placed: 171 }
-]
-const previous6 = [
-  { month: 'Oct', received: 180, placed: 70 },
-  { month: 'Nov', received: 200, placed: 85 },
-  { month: 'Dec', received: 150, placed: 60 },
-  { month: 'Jan', received: 230, placed: 92 },
-  { month: 'Feb', received: 215, placed: 101 },
-  { month: 'Mar', received: 240, placed: 110 }
-]
-export const activity = { '6M': last6, '12M': [...previous6, ...last6] }
-
-export const programs = [
-  { name: 'Job Referral', value: 640, tone: 'primary' },
-  { name: 'SPES', value: 312, tone: 'green' },
-  { name: 'Emergency Employment', value: 198, tone: 'amber' },
-  { name: 'Job Fair', value: 134, tone: 'violet' }
+  { label: 'Total Applicants', value: 0, trend: 8.2, up: true, icon: '💼', tone: 'primary' },
+  { label: 'Lacking of Requirements', value: 0, trend: 2.1, up: false, icon: '🗓️', tone: 'violet' },
+  { label: 'Referred', value: 0, trend: 12.4, up: true, icon: '📥', tone: 'amber' },
+  { label: 'Placed / Hired', value: 0, trend: 6.7, up: true, icon: '✅', tone: 'green' }
 ]
 
 export const applicants = [
