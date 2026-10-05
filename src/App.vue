@@ -16,7 +16,9 @@ const search = ref('')
   <div class="main">
     <AppTopbar v-model:search="search" @toggle-menu="menuOpen = true" />
     <main class="content">
-      <DashboardView :search="search" />
+      <RouterView v-slot="{ Component }">
+        <component :is="Component" :search="search" />
+      </RouterView>
     </main>
   </div>
 </template>

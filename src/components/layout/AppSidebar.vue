@@ -1,36 +1,33 @@
 <script setup>
-import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { navigation } from '@/data/navigation'
 
 defineProps({ open: Boolean })
-const emit = defineEmits(['close'])
+defineEmits(['close'])
 
-const active = ref('Dashboard')
-const select = (name) => {
-  active.value = name
-  emit('close')
-}
+const linkProps = (item) => (item.to ? { to: item.to, exactActiveClass: 'is-active' } : {})
 </script>
 
 <template>
   <aside class="sidebar" :class="{ 'is-open': open }" aria-label="Main navigation">
     <div class="brand">
-      <div class="brand__logo">PM</div>
+      <img src="../../assets/pics/image-Picsart-AiImageEnhancer.png" alt="PESO · MSWD" class="brand__logo" />
       <div><b>PESO · MSWD</b><small>Applicant Management</small></div>
     </div>
 
     <template v-for="group in navigation" :key="group.label">
       <div class="nav-label">{{ group.label }}</div>
-      <button
+      <component
+        :is="item.to ? RouterLink : 'button'"
         v-for="item in group.items"
         :key="item.name"
+        v-bind="linkProps(item)"
         class="nav-item"
-        :class="{ 'is-active': active === item.name }"
-        @click="select(item.name)"
+        @click="$emit('close')"
       >
         <span>{{ item.icon }}</span>{{ item.name }}
         <span v-if="item.badge" class="nav-item__badge">{{ item.badge }}</span>
-      </button>
+      </component>
     </template>
   </aside>
 </template>
