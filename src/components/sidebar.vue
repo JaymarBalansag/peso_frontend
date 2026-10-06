@@ -61,7 +61,12 @@
 
       <p class="sidebar-label sidebar-label-reports">INSIGHTS</p>
       <nav class="sidebar-nav" aria-label="Reports navigation">
-        <a class="sidebar-link is-unavailable" href="#" aria-disabled="true" tabindex="-1">
+        <a
+          class="sidebar-link"
+          :class="{ 'is-active': route.path === '/reports' }"
+          :href="router.resolve('/reports').href"
+          @click.prevent="navigateTo('/reports')"
+        >
           <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
           <span>Reports</span>
         </a>

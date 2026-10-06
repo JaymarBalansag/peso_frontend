@@ -34,56 +34,39 @@
       </section>
 
       <section class="insights-grid" aria-label="Program insights">
-        <article class="panel applications-panel">
+<article class="panel applicants-panel">
           <div class="panel-heading">
             <div>
-              <h2>Application activity</h2>
-              <p>Applications received over the last 6 months</p>
+              <h2>Recent applicants</h2>
+              <p>Latest candidates added to your registry</p>
             </div>
-            <span class="panel-menu-label"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Trending up</span>
+            <a class="text-link" href="#recent-applicants">View all <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
           </div>
 
-          <div class="chart-summary">
-            <strong>1,284</strong>
-            <span>total applicants</span>
-            <span class="chart-change">+12.8%</span>
-          </div>
-
-          <div class="chart-wrap">
-            <div class="chart-y-labels" aria-hidden="true">
-              <span>400</span>
-              <span>300</span>
-              <span>200</span>
-              <span>100</span>
-              <span>0</span>
-            </div>
-            <svg
-              class="activity-chart"
-              viewBox="0 0 620 190"
-              preserveAspectRatio="none"
-              role="img"
-              aria-label="Applications trend increases from May through October"
-            >
-              <defs>
-                <linearGradient id="activity-fill" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#2f8068" stop-opacity="0.19" />
-                  <stop offset="100%" stop-color="#2f8068" stop-opacity="0.01" />
-                </linearGradient>
-              </defs>
-              <line v-for="y in [12, 52, 92, 132, 172]" :key="y" x1="0" :y1="y" x2="620" :y2="y" class="chart-gridline" />
-              <path
-                d="M 0 136 C 42 129, 66 121, 103 124 S 174 105, 207 111 S 274 90, 310 96 S 378 70, 413 80 S 482 48, 517 58 S 585 27, 620 20 L 620 172 L 0 172 Z"
-                class="chart-area"
-              />
-              <path
-                d="M 0 136 C 42 129, 66 121, 103 124 S 174 105, 207 111 S 274 90, 310 96 S 378 70, 413 80 S 482 48, 517 58 S 585 27, 620 20"
-                class="chart-line"
-              />
-              <circle cx="620" cy="20" r="5" class="chart-point" />
-            </svg>
-          </div>
-          <div class="chart-x-labels" aria-hidden="true">
-            <span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span>
+          <div id="recent-applicants" class="table-responsive">
+            <table class="applicants-table">
+              <thead>
+                <tr>
+                  <th scope="col">APPLICANT</th>
+                  <th scope="col">POSITION APPLIED</th>
+                  <th scope="col">DATE ADDED</th>
+                  <th scope="col">STATUS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="applicant in applicants" :key="applicant.name">
+                  <td>
+                    <div class="applicant-identity">
+                      <span class="applicant-avatar" :class="applicant.avatarClass">{{ applicant.initials }}</span>
+                      <span><strong>{{ applicant.name }}</strong><small>{{ applicant.email }}</small></span>
+                    </div>
+                  </td>
+                  <td class="position-cell">{{ applicant.position }}</td>
+                  <td class="date-cell">{{ applicant.date }}</td>
+                  <td><span class="status-pill" :class="applicant.statusClass">{{ applicant.status }}</span></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </article>
 
@@ -120,69 +103,6 @@
         </article>
       </section>
 
-      <section class="activity-grid" aria-label="Recent activity and upcoming interviews">
-        <article class="panel applicants-panel">
-          <div class="panel-heading">
-            <div>
-              <h2>Recent applicants</h2>
-              <p>Latest candidates added to your registry</p>
-            </div>
-            <a class="text-link" href="#recent-applicants">View all <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
-          </div>
-
-          <div id="recent-applicants" class="table-responsive">
-            <table class="applicants-table">
-              <thead>
-                <tr>
-                  <th scope="col">APPLICANT</th>
-                  <th scope="col">POSITION APPLIED</th>
-                  <th scope="col">DATE ADDED</th>
-                  <th scope="col">STATUS</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="applicant in applicants" :key="applicant.name">
-                  <td>
-                    <div class="applicant-identity">
-                      <span class="applicant-avatar" :class="applicant.avatarClass">{{ applicant.initials }}</span>
-                      <span><strong>{{ applicant.name }}</strong><small>{{ applicant.email }}</small></span>
-                    </div>
-                  </td>
-                  <td class="position-cell">{{ applicant.position }}</td>
-                  <td class="date-cell">{{ applicant.date }}</td>
-                  <td><span class="status-pill" :class="applicant.statusClass">{{ applicant.status }}</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </article>
-
-        <article class="panel interviews-panel">
-          <div class="panel-heading">
-            <div>
-              <h2>Upcoming interviews</h2>
-              <p>Your schedule for today</p>
-            </div>
-            <span class="today-pill">Today · 3</span>
-          </div>
-
-          <div class="interview-list">
-            <div v-for="interview in interviews" :key="interview.name" class="interview-item">
-              <div class="interview-time">
-                <strong>{{ interview.time }}</strong>
-                <span>{{ interview.period }}</span>
-              </div>
-              <div class="interview-divider"></div>
-              <div class="interview-person">
-                <span class="interview-avatar" :class="interview.avatarClass">{{ interview.initials }}</span>
-                <span><strong>{{ interview.name }}</strong><small>{{ interview.role }}</small></span>
-              </div>
-            </div>
-          </div>
-
-          <a class="schedule-link" href="#interviews">Open interview schedule <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
-        </article>
-      </section>
 
       <footer class="dashboard-footer">
         <span>PESO Administration</span>
