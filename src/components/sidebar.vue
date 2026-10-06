@@ -26,25 +26,25 @@
     <div class="sidebar-content">
       <p class="sidebar-label">WORKSPACE</p>
       <nav class="sidebar-nav" aria-label="Main navigation">
-        <RouterLink
+        <a
           class="sidebar-link"
-          to="/dashboard"
           :class="{ 'is-active': route.path === '/dashboard' }"
-          data-bs-dismiss="offcanvas"
+          :href="router.resolve('/dashboard').href"
+          @click.prevent="navigateTo('/dashboard')"
         >
           <i class="bi bi-grid-1x2" aria-hidden="true"></i>
           <span>Overview</span>
-        </RouterLink>
-        <RouterLink
+        </a>
+        <a
           class="sidebar-link"
           :class="{ 'is-active': route.path === '/korea-applicants' }"
-          to="/korea-applicants"
-          data-bs-dismiss="offcanvas"
+          :href="router.resolve('/korea-applicants').href"
+          @click.prevent="navigateTo('/korea-applicants')"
         >
           <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
           <span>Korea Applicants</span>
           <span class="nav-count">12</span>
-        </RouterLink>
+        </a>
         <!-- <a class="sidebar-link is-unavailable" href="#" aria-disabled="true" tabindex="-1">
           <i class="bi bi-briefcase" aria-hidden="true"></i>
           <span>Job vacancies</span>
@@ -90,12 +90,27 @@
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const emit = defineEmits(['open-settings']);
 const route = useRoute();
+const router = useRouter();
+
+function navigateTo(path) {
+  router.push(path);
+  document.querySelector('#pesoSidebar .sidebar-close')?.click();
+}
 
 function openSettings() {
+  const sidebar = document.getElementById('pesoSidebar');
+
+  if (sidebar?.classList.contains('show')) {
+    sidebar.addEventListener('hidden.bs.offcanvas', () => {
+      emit('open-settings');
+    }, { once: true });
+    return;
+  }
+
   emit('open-settings');
 }
 </script>

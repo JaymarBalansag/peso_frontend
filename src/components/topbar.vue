@@ -14,95 +14,91 @@
       </button>
     </div>
 
-    <button
-      class="profile-button"
-      type="button"
-      aria-haspopup="dialog"
-      aria-label="Open account settings"
-      @click="openSettings"
-    >
+    <div class="profile-display" aria-label="Signed in as Maria Santos, Administrator">
       <span class="topbar-identity">
-        <span class="topbar-name">{{ profileName }}</span>
+        <span class="topbar-name">Maria Santos</span>
         <span class="topbar-role">Administrator</span>
       </span>
-      <span class="topbar-avatar" aria-hidden="true">{{ avatarInitials }}</span>
-    </button>
+      <span class="topbar-avatar" aria-hidden="true">MS</span>
+    </div>
   </header>
 
-  <div v-if="showSettings" class="settings-backdrop" @click.self="closeSettings">
-    <section
-      class="settings-dialog"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="settings-title"
-      tabindex="-1"
-      @keydown.esc="closeSettings"
-    >
-      <div class="settings-heading">
-        <div>
-          <p class="settings-eyebrow">ACCOUNT PREFERENCES</p>
-          <h2 id="settings-title">Profile &amp; settings</h2>
-          <p>Manage your profile and account access.</p>
+  <Teleport to="body">
+    <div v-if="showSettings" class="settings-backdrop" @click.self="closeSettings">
+      <section
+        class="settings-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+        tabindex="-1"
+        @keydown.esc="closeSettings"
+      >
+        <div class="settings-heading">
+          <div>
+            <p class="settings-eyebrow">ACCOUNT PREFERENCES</p>
+            <h2 id="settings-title">Profile &amp; settings</h2>
+            <p>Manage your profile and account access.</p>
+          </div>
+          <button class="dialog-close" type="button" aria-label="Close settings" @click="closeSettings">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+          </button>
         </div>
-        <button class="dialog-close" type="button" aria-label="Close settings" @click="closeSettings">
-          <i class="bi bi-x-lg" aria-hidden="true"></i>
-        </button>
-      </div>
 
-      <div class="account-summary">
-        <span class="settings-avatar" aria-hidden="true">{{ avatarInitials }}</span>
-        <span class="account-summary-copy">
-          <strong>{{ profileName }}</strong>
-          <small>{{ profileEmail }} · Administrator</small>
-        </span>
-        <span class="account-status"><i class="bi bi-circle-fill" aria-hidden="true"></i> Active</span>
-      </div>
-
-      <form class="settings-section" @submit.prevent="saveProfile">
-        <div class="section-heading">
-          <span class="section-icon"><i class="bi bi-person" aria-hidden="true"></i></span>
-          <span><strong>Personal information</strong><small>Update how your name appears in the workspace.</small></span>
+        <div class="account-summary">
+          <span class="settings-avatar" aria-hidden="true">{{ avatarInitials }}</span>
+          <span class="account-summary-copy">
+            <strong>{{ profileName }}</strong>
+            <small>{{ profileEmail }} · Administrator</small>
+          </span>
+          <span class="account-status"><i class="bi bi-circle-fill" aria-hidden="true"></i> Active</span>
         </div>
-        <label class="field-label" for="profile-name">Display name</label>
-        <input id="profile-name" v-model.trim="nameDraft" class="settings-input" type="text" autocomplete="name" required>
-        <label class="field-label email-label" for="profile-email">Work email</label>
-        <input id="profile-email" class="settings-input" type="email" :value="profileEmail" disabled>
-        <p v-if="profileNotice" class="form-notice" role="status">
-          <i class="bi bi-info-circle" aria-hidden="true"></i>{{ profileNotice }}
-        </p>
-        <button class="save-button" type="submit">Save name</button>
-      </form>
 
-      <form class="settings-section password-section" @submit.prevent="savePassword">
-        <div class="section-heading">
-          <span class="section-icon section-icon-blue"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
-          <span><strong>Password &amp; security</strong><small>Change your account password.</small></span>
-        </div>
-        <div class="password-fields">
-          <label>
-            <span class="field-label">Current password</span>
-            <input v-model="currentPassword" class="settings-input" type="password" autocomplete="current-password" required>
-          </label>
-          <label>
-            <span class="field-label">New password</span>
-            <input v-model="newPassword" class="settings-input" type="password" autocomplete="new-password" minlength="8" required>
-          </label>
-        </div>
-        <p v-if="passwordNotice" class="form-notice" role="status">
-          <i class="bi bi-info-circle" aria-hidden="true"></i>{{ passwordNotice }}
-        </p>
-        <button class="save-button" type="submit">Update password</button>
-      </form>
+        <form class="settings-section" @submit.prevent="saveProfile">
+          <div class="section-heading">
+            <span class="section-icon"><i class="bi bi-person" aria-hidden="true"></i></span>
+            <span><strong>Personal information</strong><small>Update how your name appears in the workspace.</small></span>
+          </div>
+          <label class="field-label" for="profile-name">Display name</label>
+          <input id="profile-name" v-model.trim="nameDraft" class="settings-input" type="text" autocomplete="name" required>
+          <label class="field-label email-label" for="profile-email">Work email</label>
+          <input id="profile-email" class="settings-input" type="email" :value="profileEmail" disabled>
+          <p v-if="profileNotice" class="form-notice" role="status">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>{{ profileNotice }}
+          </p>
+          <button class="save-button" type="submit">Save name</button>
+        </form>
 
-      <div class="settings-footer">
-        <span class="static-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Static preview — changes are not saved to an account.</span>
-        <button class="logout-button" type="button" @click="logout">
-          <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
-          Log out
-        </button>
-      </div>
-    </section>
-  </div>
+        <form class="settings-section password-section" @submit.prevent="savePassword">
+          <div class="section-heading">
+            <span class="section-icon section-icon-blue"><i class="bi bi-shield-lock" aria-hidden="true"></i></span>
+            <span><strong>Password &amp; security</strong><small>Change your account password.</small></span>
+          </div>
+          <div class="password-fields">
+            <label>
+              <span class="field-label">Current password</span>
+              <input v-model="currentPassword" class="settings-input" type="password" autocomplete="current-password" required>
+            </label>
+            <label>
+              <span class="field-label">New password</span>
+              <input v-model="newPassword" class="settings-input" type="password" autocomplete="new-password" minlength="8" required>
+            </label>
+          </div>
+          <p v-if="passwordNotice" class="form-notice" role="status">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>{{ passwordNotice }}
+          </p>
+          <button class="save-button" type="submit">Update password</button>
+        </form>
+
+        <div class="settings-footer">
+          <span class="static-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Static preview — changes are not saved to an account.</span>
+          <button class="logout-button" type="button" @click="logout">
+            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+            Log out
+          </button>
+        </div>
+      </section>
+    </div>
+  </Teleport>
 </template>
 
 <script>
@@ -180,7 +176,6 @@ export default {
 }
 
 .topbar-start,
-.profile-button,
 .topbar-identity {
   display: flex;
   align-items: center;
@@ -205,22 +200,16 @@ export default {
 }
 
 .sidebar-toggle:focus-visible,
-.profile-button:focus-visible,
 .dialog-close:focus-visible {
   outline: 3px solid rgba(31, 94, 77, 0.24);
   outline-offset: 2px;
 }
 
-.profile-button {
+.profile-display {
+  display: flex;
+  align-items: center;
   gap: 0.85rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
   text-align: right;
-}
-
-.profile-button:hover .topbar-name {
-  color: #1f5e4d;
 }
 
 .topbar-identity {
@@ -233,7 +222,6 @@ export default {
   font-size: 0.88rem;
   font-weight: 650;
   line-height: 1.2;
-  transition: color 150ms ease;
 }
 
 .topbar-role {
@@ -537,7 +525,7 @@ export default {
     padding-inline: 1rem;
   }
 
-  .profile-button {
+  .profile-display {
     gap: 0.65rem;
   }
 
