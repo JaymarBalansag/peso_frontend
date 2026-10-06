@@ -27,20 +27,25 @@
       <p class="sidebar-label">WORKSPACE</p>
       <nav class="sidebar-nav" aria-label="Main navigation">
         <RouterLink
-          class="sidebar-link is-active"
+          class="sidebar-link"
           to="/dashboard"
+          :class="{ 'is-active': route.path === '/dashboard' }"
           data-bs-dismiss="offcanvas"
-          aria-current="page"
         >
           <i class="bi bi-grid-1x2" aria-hidden="true"></i>
           <span>Overview</span>
         </RouterLink>
-        <a class="sidebar-link is-unavailable" href="#" aria-disabled="true" tabindex="-1">
+        <RouterLink
+          class="sidebar-link"
+          :class="{ 'is-active': route.path === '/korea-applicants' }"
+          to="/korea-applicants"
+          data-bs-dismiss="offcanvas"
+        >
           <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
-          <span>Applicants</span>
+          <span>Korea Applicants</span>
           <span class="nav-count">12</span>
-        </a>
-        <a class="sidebar-link is-unavailable" href="#" aria-disabled="true" tabindex="-1">
+        </RouterLink>
+        <!-- <a class="sidebar-link is-unavailable" href="#" aria-disabled="true" tabindex="-1">
           <i class="bi bi-briefcase" aria-hidden="true"></i>
           <span>Job vacancies</span>
         </a>
@@ -51,7 +56,7 @@
         <a class="sidebar-link is-unavailable" href="#" aria-disabled="true" tabindex="-1">
           <i class="bi bi-calendar2-week" aria-hidden="true"></i>
           <span>Interviews</span>
-        </a>
+        </a> -->
       </nav>
 
       <p class="sidebar-label sidebar-label-reports">INSIGHTS</p>
@@ -60,6 +65,14 @@
           <i class="bi bi-bar-chart-line" aria-hidden="true"></i>
           <span>Reports</span>
         </a>
+      </nav>
+
+      <p class="sidebar-label sidebar-label-reports">Utility</p>
+      <nav class="sidebar-nav" aria-label="Utility navigation">
+        <button class="sidebar-link settings-link" type="button" data-bs-dismiss="offcanvas" @click="openSettings">
+          <i class="bi bi-gear" aria-hidden="true"></i>
+          <span>Settings</span>
+        </button>
       </nav>
     </div>
 
@@ -76,10 +89,15 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Sidebar',
-};
+<script setup>
+import { useRoute } from 'vue-router';
+
+const emit = defineEmits(['open-settings']);
+const route = useRoute();
+
+function openSettings() {
+  emit('open-settings');
+}
 </script>
 
 <style scoped>
@@ -180,6 +198,17 @@ export default {
   font-weight: 500;
   text-decoration: none;
   transition: background-color 150ms ease, color 150ms ease;
+}
+
+.settings-link {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.settings-link:hover {
+  background: #f4f7f5;
 }
 
 .sidebar-link > i {
