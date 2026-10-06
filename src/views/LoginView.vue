@@ -4,7 +4,7 @@
       <div class="login-card-body">
         <div class="portal-brand">
           <span class="brand-mark" aria-hidden="true">
-            <i class="bi bi-people-fill"></i>
+            <img class="brand-logo" :src="pesoLogo" alt="">
           </span>
           <span class="brand-copy">
             <strong>PESO</strong>
@@ -108,8 +108,15 @@
 </template>
 
 <script>
+import pesoLogo from '../assets/pics/image-Picsart-AiImageEnhancer.png';
+
 export default {
   name: 'Login',
+  computed: {
+    pesoLogo() {
+      return pesoLogo;
+    },
+  },
   data() {
     return {
       email: '',
@@ -192,15 +199,19 @@ export default {
 }
 
 .brand-mark {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(31, 94, 77, 0.12);
-  border-radius: 13px;
-  background: rgba(31, 94, 77, 0.09);
-  color: var(--login-green);
-  font-size: 1.1rem;
+  width: 58px;
+  height: 52px;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.brand-logo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  mix-blend-mode: multiply;
 }
 
 .brand-copy {

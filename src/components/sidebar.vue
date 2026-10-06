@@ -7,7 +7,7 @@
   >
     <div class="sidebar-heading">
       <div class="brand-mark" aria-hidden="true">
-        <i class="bi bi-people-fill"></i>
+        <img class="brand-logo" :src="pesoLogo" alt="">
       </div>
       <div class="brand-copy">
         <span class="brand-name">PESO</span>
@@ -90,6 +90,7 @@
 </template>
 
 <script setup>
+import pesoLogo from '../assets/pics/image-Picsart-AiImageEnhancer.png';
 import { useRoute, useRouter } from 'vue-router';
 
 const emit = defineEmits(['open-settings']);
@@ -134,15 +135,18 @@ function openSettings() {
 }
 
 .brand-mark {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
+  width: 58px;
+  height: 52px;
   flex: 0 0 auto;
-  border-radius: 13px;
-  background: #1f5e4d;
-  color: #fff;
-  font-size: 1.15rem;
+}
+
+.brand-logo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  mix-blend-mode: multiply;
 }
 
 .brand-copy {
