@@ -27,6 +27,10 @@
         </div>
 
         <form class="login-form" @submit.prevent="signIn">
+          <div v-if="loginError" class="form-notice login-error" role="alert">
+            <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+            <span>{{ loginError }}</span>
+          </div>
           <div class="form-field">
             <label for="email">Email address</label>
             <div class="input-wrap">
@@ -81,8 +85,8 @@
             </button>
           </div>
 
-          <button class="sign-in-button" type="submit">
-            <span>Sign in</span>
+          <button class="sign-in-button" type="submit" :disabled="signingIn">
+            <span>{{ signingIn ? 'Signing in…' : 'Sign in' }}</span>
             <i class="bi bi-arrow-right" aria-hidden="true"></i>
           </button>
         </form>
@@ -102,13 +106,14 @@
 
     <p class="demo-note">
       <i class="bi bi-info-circle" aria-hidden="true"></i>
-      Static preview — authentication is not connected.
+      Sign in with an administrator account provided by your PESO administrator.
     </p>
   </main>
 </template>
 
 <script>
 import pesoLogo from '../assets/pics/image-Picsart-AiImageEnhancer.png';
+import { loginAdmin } from '@/controller/KoreaApplicantController';
 
 export default {
   name: 'Login',
@@ -124,16 +129,28 @@ export default {
       rememberMe: false,
       showPassword: false,
       resetNotice: '',
+      loginError: '',
+      signingIn: false,
     };
   },
   methods: {
-    signIn(event) {
-      const form = event.currentTarget;
-      if (!form.reportValidity()) return;
-      this.$router.push('/dashboard');
+    async signIn() {
+      this.signingIn = true;
+      this.loginError = '';
+      try {
+        const result = await loginAdmin({ email: this.email, password: this.password });
+        const storage = this.rememberMe ? window.localStorage : window.sessionStorage;
+        storage.setItem('peso_admin_token', result.token);
+        storage.setItem('peso_admin_user', JSON.stringify(result.user));
+        await this.$router.push('/dashboard');
+      } catch (error) {
+        this.loginError = error.response?.data?.message || 'Unable to sign in. Check your credentials and try again.';
+      } finally {
+        this.signingIn = false;
+      }
     },
     showPasswordHelp() {
-      this.resetNotice = 'Password recovery is not available in this static preview. Please contact your PESO administrator.';
+      this.resetNotice = 'Password recovery is not available here. Please contact your PESO administrator.';
     },
   },
 };

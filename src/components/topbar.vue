@@ -103,6 +103,7 @@
 
 <script>
 import Sidebar from './sidebar.vue';
+import { logoutAdmin } from '@/controller/KoreaApplicantController';
 
 export default {
   name: 'Topbar',
@@ -110,11 +111,15 @@ export default {
     Sidebar,
   },
   data() {
+    const storedUser = window.sessionStorage.getItem('peso_admin_user')
+      || window.localStorage.getItem('peso_admin_user');
+    const user = storedUser ? JSON.parse(storedUser) : null;
+
     return {
       showSettings: false,
-      profileName: 'Maria Santos',
-      profileEmail: 'maria.santos@peso.gov.ph',
-      nameDraft: 'Maria Santos',
+      profileName: user?.name || 'Administrator',
+      profileEmail: user?.email || '',
+      nameDraft: user?.name || 'Administrator',
       currentPassword: '',
       newPassword: '',
       profileNotice: '',
@@ -154,9 +159,19 @@ export default {
       this.currentPassword = '';
       this.newPassword = '';
     },
-    logout() {
+    async logout() {
       this.closeSettings();
-      this.$router.push('/login');
+      try {
+        await logoutAdmin();
+      } catch (error) {
+        console.error('Unable to revoke the administrator API token:', error);
+      } finally {
+        window.sessionStorage.removeItem('peso_admin_token');
+        window.sessionStorage.removeItem('peso_admin_user');
+        window.localStorage.removeItem('peso_admin_token');
+        window.localStorage.removeItem('peso_admin_user');
+        await this.$router.push('/login');
+      }
     },
   },
 };

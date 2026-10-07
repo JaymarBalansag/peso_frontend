@@ -11,4 +11,13 @@ const router = createRouter({
   ],
 })
 
+router.beforeEach((to) => {
+  const authenticated = Boolean(
+    window.sessionStorage.getItem('peso_admin_token')
+      || window.localStorage.getItem('peso_admin_token'),
+  );
+  if (to.name !== 'Login' && !authenticated) return { name: 'Login' };
+  if (to.name === 'Login' && authenticated) return { name: 'Dashboard' };
+});
+
 export default router
