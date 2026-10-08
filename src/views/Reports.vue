@@ -12,15 +12,18 @@
             <i class="bi bi-calendar3" aria-hidden="true"></i>
             <span class="visually-hidden">Report period</span>
             <select v-model="selectedPeriod" aria-label="Report period">
-              <option value="all">All sample records</option>
-              <option value="2026-10">October 2026</option>
-              <option value="2026-09">September 2026</option>
+              <option value="all">All records</option>
+              <option v-for="period in periods" :key="period.value" :value="period.value">{{ period.label }}</option>
             </select>
             <i class="bi bi-chevron-down select-chevron" aria-hidden="true"></i>
           </label>
-          <button class="export-button" type="button" @click="showExportNotice = true">
+          <button class="export-button" type="button" :disabled="loading || !loaded" @click="exportReport">
             <i class="bi bi-download" aria-hidden="true"></i>
             Export
+          </button>
+          <button class="export-button refresh-button" type="button" :disabled="loading" @click="loadReport">
+            <i class="bi bi-arrow-clockwise" :class="{ 'spin-icon': loading }" aria-hidden="true"></i>
+            {{ loading ? 'Loading…' : 'Refresh' }}
           </button>
         </div>
       </section>
@@ -44,15 +47,14 @@
         </div>
       </section>
 
-      <div v-if="showExportNotice" class="export-notice" role="status">
-        <i class="bi bi-info-circle" aria-hidden="true"></i>
-        Export is a static preview. No report file has been generated.
-        <button type="button" aria-label="Dismiss export message" @click="showExportNotice = false">
-          <i class="bi bi-x-lg" aria-hidden="true"></i>
-        </button>
+      <div v-if="errorMessage" class="report-message report-error" role="alert">
+        {{ errorMessage }}
+        <button type="button" :disabled="loading" @click="loadReport">Try again</button>
       </div>
+      <div v-if="exportNotice" class="report-message report-success" role="status">{{ exportNotice }}</div>
+      <div v-if="!loaded && loading" class="report-loading" role="status">Loading live report data…</div>
 
-      <section class="metrics-grid" aria-label="Program summary">
+      <section v-if="loaded" class="metrics-grid" aria-label="Program summary">
         <article v-for="metric in metrics" :key="metric.label" class="metric-card">
           <div class="metric-top">
             <span class="metric-label">{{ metric.label }}</span>
@@ -65,14 +67,14 @@
         </article>
       </section>
 
-      <section class="reports-grid" aria-label="Korea applicant analysis">
+      <section v-if="loaded" class="reports-grid" aria-label="Korea applicant analysis">
         <article class="panel status-panel">
           <div class="panel-heading">
             <div>
               <h2>Applicant pipeline</h2>
               <p>Current stage breakdown for the selected period</p>
             </div>
-            <span class="total-badge">{{ filteredApplicants.length }} total</span>
+            <span class="total-badge">{{ summary.total }} total</span>
           </div>
 
           <div class="pipeline-visual" role="img" :aria-label="pipelineDescription">
@@ -97,7 +99,7 @@
           </div>
           <div class="panel-note">
             <i class="bi bi-info-circle" aria-hidden="true"></i>
-            Counts reflect the static applicant sample and update when the period changes.
+            Counts reflect live records in the applicant registry.
           </div>
         </article>
 
@@ -134,7 +136,7 @@
         </article>
       </section>
 
-      <section class="reports-grid detail-grid">
+      <section v-if="loaded" class="reports-grid detail-grid">
         <article class="panel demographics-panel">
           <div class="panel-heading">
             <div>
@@ -182,12 +184,12 @@
           </div>
           <div v-else class="empty-state">
             <i class="bi bi-inbox" aria-hidden="true"></i>
-            <span>No sample applicants for this period.</span>
+            <span>{{ loading ? 'Loading report data…' : 'No applicants found for this period.' }}</span>
           </div>
         </article>
       </section>
 
-      <section class="future-program" aria-label="Future report programs">
+      <section v-if="loaded" class="future-program" aria-label="Future report programs">
         <span class="future-icon"><i class="bi bi-plus-lg" aria-hidden="true"></i></span>
         <span class="future-copy">
           <strong>More program reports can be added here</strong>
@@ -198,120 +200,98 @@
 
       <footer class="reports-footer">
         <span>PESO Administration · Korea applicant report</span>
-        <span>Sample records only · Not for official reporting</span>
+        <span>Live data · Refreshed {{ lastUpdated || 'not yet' }}</span>
       </footer>
     </div>
   </main>
 </template>
 
 <script>
-const koreaReport = {
-  id: 'korea',
-  label: 'Korea Applicants',
-  applicants: [
-    { id: 'KR-2026-1048', name: 'Andrea Lopez Villanueva', registered: '2026-10-06', sex: 'Female', age: 28, status: 'incomplete', avatarClass: 'avatar-rose' },
-    { id: 'KR-2026-1047', name: 'Marco Garcia Dela Cruz', registered: '2026-10-05', sex: 'Male', age: 30, status: 'referred', avatarClass: 'avatar-sand' },
-    { id: 'KR-2026-1046', name: 'Sofia Ramos Reyes', registered: '2026-10-04', sex: 'Female', age: 26, status: 'placed', avatarClass: 'avatar-lilac' },
-    { id: 'KR-2026-1045', name: 'Joshua Cruz Mendoza', registered: '2026-10-03', sex: 'Male', age: 29, status: 'incomplete', avatarClass: 'avatar-mint' },
-    { id: 'KR-2026-1044', name: 'Camille Santos Bautista', registered: '2026-10-02', sex: 'Female', age: 27, status: 'referred', avatarClass: 'avatar-blue' },
-    { id: 'KR-2026-1043', name: 'Rafael Lim Santos', registered: '2026-10-01', sex: 'Male', age: 32, status: 'placed', avatarClass: 'avatar-sand' },
-    { id: 'KR-2026-1042', name: 'Patricia Flores Garcia', registered: '2026-09-30', sex: 'Female', age: 25, status: 'incomplete', avatarClass: 'avatar-rose' },
-    { id: 'KR-2026-1041', name: 'Daniel Reyes Navarro', registered: '2026-09-29', sex: 'Male', age: 30, status: 'referred', avatarClass: 'avatar-blue' },
-    { id: 'KR-2026-1040', name: 'Isabella Mora Ramos', registered: '2026-09-28', sex: 'Female', age: 26, status: 'placed', avatarClass: 'avatar-lilac' },
-    { id: 'KR-2026-1039', name: 'Gabriel Torres Aquino', registered: '2026-09-27', sex: 'Male', age: 33, status: 'incomplete', avatarClass: 'avatar-mint' },
-    { id: 'KR-2026-1038', name: 'Nicole Diaz Fernandez', registered: '2026-09-26', sex: 'Female', age: 28, status: 'referred', avatarClass: 'avatar-rose' },
-    { id: 'KR-2026-1037', name: 'Paolo Castro Rivera', registered: '2026-09-25', sex: 'Male', age: 28, status: 'incomplete', avatarClass: 'avatar-sand' },
-  ],
-  stages: [
-    { value: 'incomplete', label: 'Incomplete documents', dotClass: 'dot-amber', barClass: 'bar-amber', statusClass: 'status-amber' },
-    { value: 'referred', label: 'Referred', dotClass: 'dot-blue', barClass: 'bar-blue', statusClass: 'status-blue' },
-    { value: 'placed', label: 'Placed / hired', dotClass: 'dot-green', barClass: 'bar-green', statusClass: 'status-green' },
-  ],
-  monthLabels: { '2026-09': 'Sep 2026', '2026-10': 'Oct 2026' },
-  ageBands: [
-    { label: '18–24', min: 18, max: 24 },
-    { label: '25–29', min: 25, max: 29 },
-    { label: '30–34', min: 30, max: 34 },
-    { label: '35+', min: 35, max: Infinity },
-  ],
-};
+import { getKoreaApplicantReport } from '@/controller/KoreaApplicantController';
 
 export default {
   name: 'Reports',
   data() {
     return {
-      programs: [koreaReport],
+      programs: [{ id: 'korea', label: 'Korea Applicants' }],
       selectedProgram: 'korea',
       selectedPeriod: 'all',
-      showExportNotice: false,
+      periods: [],
+      summary: {
+        total: 0,
+        complete: 0,
+        incomplete: 0,
+        qualified_for_further_screening: 0,
+        for_verification: 0,
+        not_qualified: 0,
+        referred: 0,
+        place_or_hired: 0,
+      },
+      monthlyRegistrations: [],
+      demographics: { female: 0, male: 0, age_groups: [] },
+      recentApplicants: [],
+      loading: false,
+      loaded: false,
+      errorMessage: '',
+      exportNotice: '',
+      lastUpdated: '',
+      requestSequence: 0,
     };
   },
+  mounted() {
+    this.loadReport();
+  },
+  watch: {
+    selectedPeriod() {
+      this.loadReport();
+    },
+  },
   computed: {
-    activeProgram() {
-      return this.programs.find((program) => program.id === this.selectedProgram) || this.programs[0];
-    },
-    filteredApplicants() {
-      if (this.selectedPeriod === 'all') return this.activeProgram.applicants;
-      return this.activeProgram.applicants.filter((applicant) => applicant.registered.startsWith(this.selectedPeriod));
-    },
     stages() {
-      const total = this.filteredApplicants.length;
-      return this.activeProgram.stages.map((stage) => {
-        const count = this.filteredApplicants.filter((applicant) => applicant.status === stage.value).length;
+      const definitions = [
+        { value: 'qualified_for_further_screening', label: 'Qualified for screening', dotClass: 'dot-green', barClass: 'bar-green' },
+        { value: 'for_verification', label: 'For verification', dotClass: 'dot-blue', barClass: 'bar-blue' },
+        { value: 'not_qualified', label: 'Not qualified', dotClass: 'dot-amber', barClass: 'bar-amber' },
+        { value: 'referred', label: 'Referred', dotClass: 'dot-blue', barClass: 'bar-blue' },
+        { value: 'place_or_hired', label: 'Placed / hired', dotClass: 'dot-green', barClass: 'bar-green' },
+      ];
+      const assigned = definitions.reduce((total, stage) => total + this.summary[stage.value], 0);
+      definitions.push({
+        value: 'not_set',
+        label: 'Not set',
+        dotClass: 'dot-amber',
+        barClass: 'bar-amber',
+        count: Math.max(0, this.summary.total - assigned),
+      });
+
+      return definitions.map((stage) => {
+        const count = stage.count ?? this.summary[stage.value];
         return {
           ...stage,
           count,
-          percent: total ? Math.round((count / total) * 100) : 0,
+          percent: this.summary.total ? Math.round((count / this.summary.total) * 100) : 0,
         };
       });
-    },
-    monthlyRegistrations() {
-      const months = this.selectedPeriod === 'all'
-        ? Object.keys(this.activeProgram.monthLabels)
-        : [this.selectedPeriod];
-
-      return months.map((month) => ({
-        label: this.activeProgram.monthLabels[month],
-        count: this.filteredApplicants.filter((applicant) => applicant.registered.startsWith(month)).length,
-      }));
     },
     chartMax() {
       const largest = Math.max(...this.monthlyRegistrations.map((month) => month.count), 0);
       return Math.max(4, Math.ceil(largest / 2) * 2);
     },
     femaleCount() {
-      return this.filteredApplicants.filter((applicant) => applicant.sex === 'Female').length;
+      return this.demographics.female;
     },
     maleCount() {
-      return this.filteredApplicants.filter((applicant) => applicant.sex === 'Male').length;
+      return this.demographics.male;
     },
     ageGroups() {
-      return this.activeProgram.ageBands.map((band) => ({
-        ...band,
-        count: this.filteredApplicants.filter((applicant) => applicant.age >= band.min && applicant.age <= band.max).length,
-      }));
-    },
-    recentApplicants() {
-      return [...this.filteredApplicants]
-        .sort((first, second) => second.registered.localeCompare(first.registered))
-        .slice(0, 5)
-        .map((applicant) => {
-          const stage = this.activeProgram.stages.find((item) => item.value === applicant.status);
-          return {
-            ...applicant,
-            initials: applicant.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join(''),
-            statusLabel: stage.label,
-            statusClass: stage.statusClass,
-          };
-        });
+      return this.demographics.age_groups;
     },
     metrics() {
-      const countFor = (status) => this.filteredApplicants.filter((applicant) => applicant.status === status).length;
       return [
-        { label: 'Total applicants', value: this.filteredApplicants.length, caption: 'Registered in this period', icon: 'bi-people', iconClass: 'icon-green' },
-        { label: 'Incomplete documents', value: countFor('incomplete'), caption: 'Require document follow-up', icon: 'bi-folder2-open', iconClass: 'icon-amber' },
-        { label: 'Referred', value: countFor('referred'), caption: 'Referred for opportunities', icon: 'bi-send-check', iconClass: 'icon-blue' },
-        { label: 'Placed / hired', value: countFor('placed'), caption: 'Successfully placed', icon: 'bi-person-check', iconClass: 'icon-violet' },
+        { label: 'Total applicants', value: this.summary.total, caption: 'Registered in this period', icon: 'bi-people', iconClass: 'icon-green' },
+        { label: 'Incomplete documents', value: this.summary.incomplete, caption: 'Require document follow-up', icon: 'bi-folder2-open', iconClass: 'icon-amber' },
+        { label: 'Referred', value: this.summary.referred, caption: 'Referred for opportunities', icon: 'bi-send-check', iconClass: 'icon-blue' },
+        { label: 'Placed / hired', value: this.summary.place_or_hired, caption: 'Successfully placed', icon: 'bi-person-check', iconClass: 'icon-violet' },
       ];
     },
     pipelineDescription() {
@@ -319,13 +299,100 @@ export default {
     },
   },
   methods: {
+    async loadReport() {
+      const sequence = ++this.requestSequence;
+      this.loading = true;
+      this.errorMessage = '';
+      this.exportNotice = '';
+      try {
+        const report = await getKoreaApplicantReport(this.selectedPeriod);
+        if (sequence !== this.requestSequence) return;
+        this.periods = report.periods;
+        this.summary = report.summary;
+        this.monthlyRegistrations = report.monthly_registrations;
+        this.demographics = report.demographics;
+        this.recentApplicants = report.recent_applicants.map((applicant) => ({
+          ...applicant,
+          name: [applicant.first_name, applicant.middle_name, applicant.last_name].filter(Boolean).join(' '),
+          initials: `${applicant.first_name?.charAt(0) || ''}${applicant.last_name?.charAt(0) || ''}`,
+          avatarClass: ['avatar-rose', 'avatar-sand', 'avatar-lilac', 'avatar-mint', 'avatar-blue'][Number(applicant.id) % 5],
+          statusLabel: this.interviewLabel(applicant.initial_interview_result),
+          statusClass: this.interviewClass(applicant.initial_interview_result),
+        }));
+        this.loaded = true;
+        this.lastUpdated = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date());
+      } catch (error) {
+        if (sequence === this.requestSequence) {
+          this.errorMessage = error.response?.data?.message || 'Unable to load report data. Please try again.';
+        }
+      } finally {
+        if (sequence === this.requestSequence) this.loading = false;
+      }
+    },
     percentOfTotal(value) {
-      return this.filteredApplicants.length
-        ? Math.round((value / this.filteredApplicants.length) * 100)
+      return this.summary.total
+        ? Math.round((value / this.summary.total) * 100)
         : 0;
     },
     barHeight(value) {
       return this.chartMax ? Math.max((value / this.chartMax) * 100, value ? 8 : 0) : 0;
+    },
+    interviewLabel(value) {
+      return {
+        qualified_for_further_screening: 'Qualified for screening',
+        for_verification: 'For verification',
+        not_qualified: 'Not qualified',
+        referred: 'Referred',
+        place_or_hired: 'Placed / hired',
+      }[value] || 'Not set';
+    },
+    interviewClass(value) {
+      return {
+        qualified_for_further_screening: 'status-green',
+        place_or_hired: 'status-green',
+        for_verification: 'status-blue',
+        not_qualified: 'status-amber',
+        referred: 'status-blue',
+      }[value] || 'status-amber';
+    },
+    exportReport() {
+      const rows = [
+        ['Korea applicant report', this.selectedPeriod === 'all' ? 'All records' : this.periods.find((period) => period.value === this.selectedPeriod)?.label],
+        [],
+        ['Metric', 'Count'],
+        ['Total applicants', this.summary.total],
+        ['Complete documents', this.summary.complete],
+        ['Incomplete documents', this.summary.incomplete],
+        ['Qualified for screening', this.summary.qualified_for_further_screening],
+        ['For verification', this.summary.for_verification],
+        ['Not qualified', this.summary.not_qualified],
+        ['Referred', this.summary.referred],
+        ['Placed / hired', this.summary.place_or_hired],
+        ['Female applicants', this.femaleCount],
+        ['Male applicants', this.maleCount],
+        [],
+        ['Registration month', 'Applicants'],
+        ...this.monthlyRegistrations.map((month) => [month.label, month.count]),
+        [],
+        ['Recent applicant', 'Registration date', 'Interview result'],
+        ...this.recentApplicants.map((applicant) => [
+          applicant.name,
+          applicant.created_at ? new Date(applicant.created_at).toLocaleDateString() : '',
+          applicant.statusLabel,
+        ]),
+      ];
+      const csv = rows.map((row) => row.map((value) => {
+        const text = String(value ?? '');
+        const safeText = /^[\s]*[=+\-@]/.test(text) ? `'${text}` : text;
+        return `"${safeText.replaceAll('"', '""')}"`;
+      }).join(',')).join('\r\n');
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `korea-applicant-report-${this.selectedPeriod}.csv`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+      this.exportNotice = 'Live report exported as a CSV file.';
     },
   },
 };
@@ -439,6 +506,11 @@ export default {
   background: #f9fbfa;
 }
 
+.export-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .export-button i {
   color: #397863;
 }
@@ -515,12 +587,10 @@ export default {
   font-size: 0.4rem;
 }
 
-.export-notice {
+.report-message,
+.report-loading {
   margin-bottom: 1rem;
   padding: 0.65rem 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   border: 1px solid #e6ede9;
   border-radius: 8px;
   background: #f5f8f6;
@@ -528,11 +598,36 @@ export default {
   font-size: 0.69rem;
 }
 
-.export-notice button {
+.report-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.report-error {
+  border-color: #f0d5d3;
+  background: #fff5f4;
+  color: #a63832;
+}
+
+.report-success {
+  color: #236343;
+}
+
+.report-message button {
   margin-left: auto;
   border: 0;
   background: transparent;
-  color: #758a7e;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.report-loading {
+  text-align: center;
 }
 
 .metrics-grid {

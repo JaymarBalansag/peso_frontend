@@ -25,6 +25,11 @@ export async function getKoreaApplicants(params = {}) {
   }
 }
 
+export async function getKoreaApplicantReport(period = 'all') {
+  const response = await api.get('/korea-applicant-report', { params: { period } });
+  return response.data.data;
+}
+
 export async function getKoreaApplicantById(id) {
   try {
     const response = await api.get(`/korea-applicants/${id}`);
