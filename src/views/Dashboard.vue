@@ -3,16 +3,20 @@
     <div class="dashboard-content">
       <section class="page-heading" aria-labelledby="dashboard-title">
         <div>
-          <p class="eyebrow">TUESDAY · OCTOBER 6, 2026</p>
-          <h1 id="dashboard-title">Good afternoon, Aizy</h1>
-          <p class="page-description">Here’s what’s happening across your employment programs today.</p>
+          <p class="eyebrow">{{ todayLabel }}</p>
+          <h1 id="dashboard-title">Good {{ greeting }}, {{ firstName }}</h1>
+          <p class="page-description">Here’s the latest overview of Korea applicants.</p>
         </div>
-        <div class="report-period">
-          <i class="bi bi-calendar3" aria-hidden="true"></i>
-          <span>October 2026</span>
-          <i class="bi bi-chevron-down report-chevron" aria-hidden="true"></i>
-        </div>
+        <button class="report-period" type="button" :disabled="loading" @click="loadDashboard">
+          <i class="bi bi-arrow-clockwise" :class="{ 'spin-icon': loading }" aria-hidden="true"></i>
+          <span>{{ loading ? 'Refreshing…' : 'Refresh data' }}</span>
+        </button>
       </section>
+
+      <div v-if="errorMessage" class="dashboard-error" role="alert">
+        <span><i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ errorMessage }}</span>
+        <button type="button" :disabled="loading" @click="loadDashboard">Try again</button>
+      </div>
 
       <section class="metrics-grid" aria-label="Key performance indicators">
         <article v-for="metric in metrics" :key="metric.label" class="metric-card">
@@ -22,7 +26,7 @@
               <i :class="`bi ${metric.icon}`" aria-hidden="true"></i>
             </span>
           </div>
-          <div class="metric-value">{{ metric.value }}</div>
+          <div class="metric-value">{{ formatCount(metric.value) }}</div>
           <div class="metric-foot">
             <span class="metric-change" :class="metric.changeClass">
               <i :class="`bi ${metric.changeIcon}`" aria-hidden="true"></i>
@@ -40,7 +44,7 @@
               <h2>Recent applicants</h2>
               <p>Latest candidates added to your registry</p>
             </div>
-            <a class="text-link" href="#recent-applicants">View all <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+            <RouterLink class="text-link" to="/korea-applicants">View all <i class="bi bi-arrow-right" aria-hidden="true"></i></RouterLink>
           </div>
 
           <div id="recent-applicants" class="table-responsive">
@@ -48,23 +52,26 @@
               <thead>
                 <tr>
                   <th scope="col">APPLICANT</th>
-                  <th scope="col">POSITION APPLIED</th>
+                  <th scope="col">BARANGAY</th>
                   <th scope="col">DATE ADDED</th>
                   <th scope="col">STATUS</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr v-for="applicant in applicants" :key="applicant.name">
+              <tbody v-if="applicants.length">
+                <tr v-for="applicant in applicants" :key="applicant.id">
                   <td>
                     <div class="applicant-identity">
-                      <span class="applicant-avatar" :class="applicant.avatarClass">{{ applicant.initials }}</span>
-                      <span><strong>{{ applicant.name }}</strong><small>{{ applicant.email }}</small></span>
+                      <span class="applicant-avatar" :class="avatarClass(applicant.id)">{{ initials(applicant) }}</span>
+                      <span><strong>{{ fullName(applicant) }}</strong><small>Applicant #{{ applicant.id }}</small></span>
                     </div>
                   </td>
-                  <td class="position-cell">{{ applicant.position }}</td>
-                  <td class="date-cell">{{ applicant.date }}</td>
-                  <td><span class="status-pill" :class="applicant.statusClass">{{ applicant.status }}</span></td>
+                  <td class="position-cell">{{ applicant.barangay || '—' }}</td>
+                  <td class="date-cell">{{ formatDate(applicant.created_at) }}</td>
+                  <td><span class="status-pill" :class="statusClass(applicant.initial_interview_result)">{{ interviewLabel(applicant.initial_interview_result) }}</span></td>
                 </tr>
+              </tbody>
+              <tbody v-else>
+                <tr><td colspan="4" class="dashboard-empty">{{ loading ? 'Loading recent applicants…' : 'No applicants have been registered yet.' }}</td></tr>
               </tbody>
             </table>
           </div>
@@ -73,8 +80,8 @@
         <article class="panel pipeline-panel">
           <div class="panel-heading">
             <div>
-              <h2>Hiring pipeline</h2>
-              <p>Applicant progress this month</p>
+              <h2>Interview outcomes</h2>
+              <p>Current breakdown across Korea applicants</p>
             </div>
             <button class="quiet-icon" type="button" aria-label="More pipeline information">
               <i class="bi bi-three-dots" aria-hidden="true"></i>
@@ -82,23 +89,23 @@
           </div>
 
           <div class="pipeline-total">
-            <strong>846</strong>
-            <span>active candidates</span>
+            <strong>{{ formatCount(summary.total) }}</strong>
+            <span>registered applicants</span>
           </div>
           <div class="pipeline-list">
             <div v-for="stage in pipeline" :key="stage.label" class="pipeline-row">
               <div class="pipeline-row-heading">
                 <span><i class="stage-dot" :class="stage.dotClass"></i>{{ stage.label }}</span>
-                <strong>{{ stage.count }}</strong>
+                <strong>{{ formatCount(stage.count) }}</strong>
               </div>
               <div class="progress-track">
-                <span :class="stage.barClass" :style="{ width: `${stage.percent}%` }"></span>
+                <span :class="stage.barClass" :style="{ width: `${stagePercent(stage.count)}%` }"></span>
               </div>
             </div>
           </div>
           <div class="pipeline-note">
             <span class="note-icon"><i class="bi bi-lightbulb" aria-hidden="true"></i></span>
-            <span><strong>Good momentum</strong><small>More applicants are reaching interview stage this month.</small></span>
+            <span><strong>Live applicant data</strong><small>Counts update from the applicant registry whenever you refresh.</small></span>
           </div>
         </article>
       </section>
@@ -113,106 +120,161 @@
 </template>
 
 <script>
+import { getKoreaApplicants } from '@/controller/KoreaApplicantController';
+
 export default {
   name: 'Dashboard',
   data() {
     return {
-      metrics: [
+      applicants: [],
+      summary: {
+        total: 0,
+        complete: 0,
+        incomplete: 0,
+        qualified_for_further_screening: 0,
+        for_verification: 0,
+        not_qualified: 0,
+        referred: 0,
+        place_or_hired: 0,
+      },
+      loading: false,
+      errorMessage: '',
+      requestSequence: 0,
+    };
+  },
+  computed: {
+    metrics() {
+      return [
         {
           label: 'Registered applicants',
-          value: '1,284',
-          change: '+12.8%',
-          caption: 'vs. last month',
+          value: this.summary.total,
+          change: 'All records',
+          caption: 'in the registry',
           icon: 'bi-people',
           iconClass: 'icon-green',
-          changeIcon: 'bi-arrow-up-right',
+          changeIcon: 'bi-database-check',
           changeClass: 'change-positive',
         },
         {
           label: 'Successfully placed',
-          value: '326',
-          change: '+8.2%',
-          caption: 'vs. last month',
+          value: this.summary.place_or_hired,
+          change: 'Place or hired',
+          caption: 'interview result',
           icon: 'bi-person-check',
           iconClass: 'icon-blue',
-          changeIcon: 'bi-arrow-up-right',
+          changeIcon: 'bi-check-circle',
           changeClass: 'change-positive',
         },
         {
-          label: 'Open vacancies',
-          value: '84',
-          change: '6 new',
-          caption: 'this week',
-          icon: 'bi-briefcase',
+          label: 'Referred applicants',
+          value: this.summary.referred,
+          change: 'Referred',
+          caption: 'interview result',
+          icon: 'bi-send',
           iconClass: 'icon-amber',
-          changeIcon: 'bi-plus',
+          changeIcon: 'bi-arrow-right-circle',
           changeClass: 'change-neutral',
         },
         {
-          label: 'Interviews scheduled',
-          value: '36',
-          change: 'Today',
-          caption: '3 interviews',
-          icon: 'bi-calendar2-check',
+          label: 'Qualified for screening',
+          value: this.summary.qualified_for_further_screening,
+          change: 'Qualified',
+          caption: 'interview result',
+          icon: 'bi-clipboard-check',
           iconClass: 'icon-violet',
-          changeIcon: 'bi-dot',
+          changeIcon: 'bi-check2',
           changeClass: 'change-neutral',
         },
-      ],
-      pipeline: [
-        { label: 'New applicants', count: '412', percent: 88, dotClass: 'dot-green', barClass: 'bar-green' },
-        { label: 'For screening', count: '238', percent: 62, dotClass: 'dot-blue', barClass: 'bar-blue' },
-        { label: 'For interview', count: '124', percent: 39, dotClass: 'dot-amber', barClass: 'bar-amber' },
-        { label: 'Job matched', count: '72', percent: 23, dotClass: 'dot-violet', barClass: 'bar-violet' },
-      ],
-      applicants: [
-        {
-          name: 'Andrea Villanueva',
-          email: 'andrea.v@email.com',
-          initials: 'AV',
-          avatarClass: 'avatar-rose',
-          position: 'Administrative Aide',
-          date: 'Oct 06, 2026',
-          status: 'For screening',
-          statusClass: 'status-blue',
-        },
-        {
-          name: 'Marco Dela Cruz',
-          email: 'marco.dc@email.com',
-          initials: 'MD',
-          avatarClass: 'avatar-sand',
-          position: 'Customer Service Rep.',
-          date: 'Oct 06, 2026',
-          status: 'Interview',
-          statusClass: 'status-amber',
-        },
-        {
-          name: 'Sofia Reyes',
-          email: 'sofia.r@email.com',
-          initials: 'SR',
-          avatarClass: 'avatar-lilac',
-          position: 'Office Clerk',
-          date: 'Oct 05, 2026',
-          status: 'Job matched',
-          statusClass: 'status-green',
-        },
-        {
-          name: 'Joshua Mendoza',
-          email: 'joshua.m@email.com',
-          initials: 'JM',
-          avatarClass: 'avatar-mint',
-          position: 'Accounting Assistant',
-          date: 'Oct 05, 2026',
-          status: 'For screening',
-          statusClass: 'status-blue',
-        },
-      ],
-      interviews: [
-        { time: '09:30', period: 'AM', name: 'Marco Dela Cruz', role: 'Customer Service Rep.', initials: 'MD', avatarClass: 'avatar-sand' },
-        { time: '11:00', period: 'AM', name: 'Camille Bautista', role: 'Administrative Aide', initials: 'CB', avatarClass: 'avatar-blue' },
-        { time: '02:15', period: 'PM', name: 'Rafael Santos', role: 'Warehouse Associate', initials: 'RS', avatarClass: 'avatar-mint' },
-      ],
-    };
+      ];
+    },
+    pipeline() {
+      return [
+        { label: 'Qualified for screening', count: this.summary.qualified_for_further_screening, dotClass: 'dot-green', barClass: 'bar-green' },
+        { label: 'For verification', count: this.summary.for_verification, dotClass: 'dot-blue', barClass: 'bar-blue' },
+        { label: 'Referred', count: this.summary.referred, dotClass: 'dot-amber', barClass: 'bar-amber' },
+        { label: 'Place or hired', count: this.summary.place_or_hired, dotClass: 'dot-violet', barClass: 'bar-violet' },
+        { label: 'Not qualified', count: this.summary.not_qualified, dotClass: 'dot-rose', barClass: 'bar-rose' },
+      ];
+    },
+    firstName() {
+      const storedUser = window.sessionStorage.getItem('peso_admin_user')
+        || window.localStorage.getItem('peso_admin_user');
+      const name = storedUser ? JSON.parse(storedUser)?.name : '';
+      return name?.trim().split(/\s+/)[0] || 'Administrator';
+    },
+    greeting() {
+      const hour = new Date().getHours();
+      return hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+    },
+    todayLabel() {
+      return new Intl.DateTimeFormat(undefined, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      }).format(new Date()).toLocaleUpperCase();
+    },
+  },
+  mounted() {
+    this.loadDashboard();
+  },
+  methods: {
+    async loadDashboard() {
+      const requestSequence = ++this.requestSequence;
+      this.loading = true;
+      this.errorMessage = '';
+      try {
+        const response = await getKoreaApplicants({ page: 1, per_page: 5 });
+        if (requestSequence !== this.requestSequence) return;
+        this.applicants = response.data.data || [];
+        this.summary = response.summary;
+      } catch (error) {
+        if (requestSequence === this.requestSequence) {
+          this.errorMessage = error.response?.data?.message || 'Unable to load live applicant data. Please try again.';
+          console.error('Unable to load dashboard applicant data:', error);
+        }
+      } finally {
+        if (requestSequence === this.requestSequence) this.loading = false;
+      }
+    },
+    formatCount(value) {
+      return Number(value || 0).toLocaleString();
+    },
+    fullName(applicant) {
+      return [applicant.first_name, applicant.middle_name, applicant.last_name].filter(Boolean).join(' ');
+    },
+    initials(applicant) {
+      return `${applicant.first_name?.charAt(0) || ''}${applicant.last_name?.charAt(0) || ''}`;
+    },
+    avatarClass(id) {
+      return ['avatar-rose', 'avatar-sand', 'avatar-lilac', 'avatar-mint', 'avatar-blue'][Number(id) % 5];
+    },
+    formatDate(value) {
+      if (!value) return '—';
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
+    },
+    interviewLabel(value) {
+      return {
+        qualified_for_further_screening: 'Qualified for screening',
+        for_verification: 'For verification',
+        not_qualified: 'Not qualified',
+        referred: 'Referred',
+        place_or_hired: 'Place or hired',
+      }[value] || 'Not set';
+    },
+    statusClass(value) {
+      return {
+        qualified_for_further_screening: 'status-blue',
+        for_verification: 'status-amber',
+        not_qualified: 'status-red',
+        referred: 'status-violet',
+        place_or_hired: 'status-green',
+      }[value] || 'status-neutral';
+    },
+    stagePercent(count) {
+      return this.summary.total ? Math.min(100, (count / this.summary.total) * 100) : 0;
+    },
   },
 };
 </script>
@@ -274,6 +336,51 @@ export default {
   color: #4f5e73;
   font-size: 0.76rem;
   font-weight: 550;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.report-period:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.spin-icon {
+  animation: dashboard-spin 0.9s linear infinite;
+}
+
+@keyframes dashboard-spin {
+  to { transform: rotate(360deg); }
+}
+
+.dashboard-error {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid #f0d2cc;
+  border-radius: 8px;
+  background: #fff7f5;
+  color: #914d43;
+  font-size: 0.75rem;
+}
+
+.dashboard-error button {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid #e4c2bb;
+  border-radius: 6px;
+  background: #fff;
+  color: #914d43;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dashboard-error button:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
 .report-period > i:first-child {
@@ -569,6 +676,7 @@ export default {
 .dot-blue { background: #7194c6; }
 .dot-amber { background: #d3a152; }
 .dot-violet { background: #9a8bc4; }
+.dot-rose { background: #c77c89; }
 
 .progress-track {
   height: 5px;
@@ -587,6 +695,7 @@ export default {
 .bar-blue { background: #82a1cc; }
 .bar-amber { background: #d9ae69; }
 .bar-violet { background: #a195c8; }
+.bar-rose { background: #cf8793; }
 
 .pipeline-note {
   margin-top: 1.05rem;
@@ -669,6 +778,12 @@ export default {
   border-bottom: 0;
 }
 
+.dashboard-empty {
+  padding: 1.5rem 0.55rem !important;
+  color: #929dad !important;
+  text-align: center;
+}
+
 .applicant-identity,
 .interview-person {
   display: flex;
@@ -732,6 +847,9 @@ export default {
 .status-blue { background: #edf3fb; color: #6283b0; }
 .status-amber { background: #faf3e8; color: #ae833f; }
 .status-green { background: #eaf4ee; color: #4d8769; }
+.status-violet { background: #f2effa; color: #7a69a7; }
+.status-red { background: #fbefed; color: #a9574c; }
+.status-neutral { background: #f1f3f5; color: #68768a; }
 
 .today-pill {
   padding: 0.35rem 0.55rem;

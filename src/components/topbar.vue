@@ -14,10 +14,10 @@
       </button>
     </div>
 
-    <div class="profile-display" aria-label="Signed in as Maria Santos, Administrator">
+    <div class="profile-display" :aria-label="`Signed in as ${profileName}, ${profileRole}`">
       <span class="topbar-identity">
-        <span class="topbar-name">Maria Santos</span>
-        <span class="topbar-role">Administrator</span>
+        <span class="topbar-name">{{ profileName }}</span>
+        <span class="topbar-role">{{ profileRole }}</span>
       </span>
       <span class="topbar-avatar" aria-hidden="true">MS</span>
     </div>
@@ -48,7 +48,7 @@
           <span class="settings-avatar" aria-hidden="true">{{ avatarInitials }}</span>
           <span class="account-summary-copy">
             <strong>{{ profileName }}</strong>
-            <small>{{ profileEmail }} · Administrator</small>
+            <small>{{ profileEmail }} · {{ profileRole }}</small>
           </span>
           <span class="account-status"><i class="bi bi-circle-fill" aria-hidden="true"></i> Active</span>
         </div>
@@ -119,6 +119,7 @@ export default {
       showSettings: false,
       profileName: user?.name || 'Administrator',
       profileEmail: user?.email || '',
+      profileRole: user?.role === 'admin' ? 'Administrator' : user?.role || 'Administrator',
       nameDraft: user?.name || 'Administrator',
       currentPassword: '',
       newPassword: '',
