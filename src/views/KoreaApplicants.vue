@@ -248,8 +248,8 @@
         <section id="applicant-farm" class="detail-section">
           <h3>Farm profile</h3>
           <dl class="detail-grid">
-            <div><dt>Farm skills</dt><dd>{{ relationNames(selectedApplicant.farm_skills, 'farmSkill', 'skill_name') }}</dd></div>
-            <div><dt>Farm work</dt><dd>{{ relationNames(selectedApplicant.farm_works, 'farmWork', 'work_name') }}</dd></div>
+            <div><dt>Farm skills</dt><dd>{{ relationNames(selectedApplicant.farm_skills, 'farm_skill', 'skill_name') }}</dd></div>
+            <div><dt>Farm work</dt><dd>{{ relationNames(selectedApplicant.farm_works, 'farm_work', 'work_name') }}</dd></div>
             <div><dt>Crops handled</dt><dd>{{ relationNames(selectedApplicant.crops_handled, null, 'crop_name') }}</dd></div>
             <div><dt>Equipment skills</dt><dd>{{ relationNames(selectedApplicant.equipment_skills, null, 'equipment_skills') }}</dd></div>
           </dl>
