@@ -30,6 +30,14 @@
           <span class="summary-icon summary-icon-violet"><i class="bi bi-person-check" aria-hidden="true"></i></span>
           <span class="summary-copy"><small>For verification</small><strong>{{ summary.for_verification }}</strong></span>
         </article>
+        <article class="summary-card">
+          <span class="summary-icon summary-icon-teal"><i class="bi bi-send" aria-hidden="true"></i></span>
+          <span class="summary-copy"><small>Referred</small><strong>{{ summary.referred }}</strong></span>
+        </article>
+        <article class="summary-card">
+          <span class="summary-icon summary-icon-rose"><i class="bi bi-briefcase" aria-hidden="true"></i></span>
+          <span class="summary-copy"><small>Place or hired</small><strong>{{ summary.place_or_hired }}</strong></span>
+        </article>
       </section>
 
       <section class="applicant-panel" aria-labelledby="applicant-list-title">
@@ -58,6 +66,8 @@
                 <option value="qualified_for_further_screening">Qualified for screening</option>
                 <option value="for_verification">For verification</option>
                 <option value="not_qualified">Not qualified</option>
+                <option value="referred">Referred</option>
+                <option value="place_or_hired">Place or Hired</option>
               </select>
             </label>
           </div>
@@ -495,7 +505,7 @@ export default {
   data() {
     return {
       applicants: [],
-      summary: { total: 0, complete: 0, incomplete: 0, qualified_for_further_screening: 0, for_verification: 0, not_qualified: 0 },
+      summary: { total: 0, complete: 0, incomplete: 0, qualified_for_further_screening: 0, for_verification: 0, not_qualified: 0, referred: 0, place_or_hired: 0 },
       pagination: { current_page: 1, last_page: 1, per_page: 10, total: 0, from: 0, to: 0 },
       options: { farm_skills: [], farm_works: [] },
       validIdTypes,
@@ -607,7 +617,7 @@ export default {
       return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
     },
     interviewLabel(value) {
-      return { qualified_for_further_screening: 'Qualified for further screening',place_or_hired: "Place or Hired", Referred: "Referred", for_verification: 'For verification', not_qualified: 'Not qualified' }[value] || 'Not set';
+      return { qualified_for_further_screening: 'Qualified for further screening', place_or_hired: 'Place or Hired', referred: 'Referred', for_verification: 'For verification', not_qualified: 'Not qualified' }[value] || 'Not set';
     },
     statusClass(status) { return status === 'complete' ? 'status-green' : status === 'incomplete' ? 'status-amber' : 'status-blue'; },
     documentLabel(name) { return name.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); },
@@ -836,6 +846,8 @@ export default {
 .summary-icon-amber { background: #fbf3e8; color: #b8802d; }
 .summary-icon-blue { background: #edf3fb; color: #5278ad; }
 .summary-icon-violet { background: #f2effa; color: #7a69a7; }
+.summary-icon-teal { background: #e9f5f4; color: #39817d; }
+.summary-icon-rose { background: #fbf0f2; color: #b66578; }
 
 .summary-copy {
   display: grid;
