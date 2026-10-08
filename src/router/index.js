@@ -8,6 +8,7 @@ const router = createRouter({
     { path: '/dashboard', name: 'Dashboard', component: () => import('@/views/Dashboard.vue') },
     { path: '/korea-applicants', name: 'KoreaApplicants', component: () => import('@/views/KoreaApplicants.vue') },
     { path: '/reports', name: 'Reports', component: () => import('@/views/Reports.vue') },
+    { path: '/user-management', name: 'UserManagement', component: () => import('@/views/UserManagement.vue') },
   ],
 })
 
@@ -18,6 +19,12 @@ router.beforeEach((to) => {
   );
   if (to.name !== 'Login' && !authenticated) return { name: 'Login' };
   if (to.name === 'Login' && authenticated) return { name: 'Dashboard' };
+  if (to.name === 'UserManagement') {
+    const storedUser = window.sessionStorage.getItem('peso_admin_user')
+      || window.localStorage.getItem('peso_admin_user');
+    const user = storedUser ? JSON.parse(storedUser) : null;
+    if (user?.role !== 'admin') return { name: 'Dashboard' };
+  }
 });
 
 export default router

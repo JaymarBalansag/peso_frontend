@@ -74,6 +74,16 @@
 
       <p class="sidebar-label sidebar-label-reports">Utility</p>
       <nav class="sidebar-nav" aria-label="Utility navigation">
+        <a
+          v-if="isAdmin"
+          class="sidebar-link"
+          :class="{ 'is-active': route.path === '/user-management' }"
+          :href="router.resolve('/user-management').href"
+          @click.prevent="navigateTo('/user-management')"
+        >
+          <i class="bi bi-person-gear" aria-hidden="true"></i>
+          <span>User Management</span>
+        </a>
         <button class="sidebar-link settings-link" type="button" data-bs-dismiss="offcanvas" @click="openSettings">
           <i class="bi bi-gear" aria-hidden="true"></i>
           <span>Settings</span>
@@ -101,6 +111,9 @@ import { useRoute, useRouter } from 'vue-router';
 const emit = defineEmits(['open-settings']);
 const route = useRoute();
 const router = useRouter();
+const storedUser = window.sessionStorage.getItem('peso_admin_user')
+  || window.localStorage.getItem('peso_admin_user');
+const isAdmin = storedUser ? JSON.parse(storedUser).role === 'admin' : false;
 
 function navigateTo(path) {
   router.push(path);
