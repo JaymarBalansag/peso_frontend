@@ -178,7 +178,7 @@
 
     <div v-if="selectedApplicant" class="detail-backdrop">
       <section
-        class="detail-dialog"
+        class="detail-dialog applicant-detail-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="detail-title"
@@ -193,6 +193,12 @@
             <i class="bi bi-x-lg" aria-hidden="true"></i>
           </button>
         </div>
+        <nav class="detail-jump-nav" aria-label="Applicant detail sections">
+          <a href="#applicant-personal">Personal</a>
+          <a href="#applicant-experience">Experience</a>
+          <a href="#applicant-farm">Farm profile</a>
+          <button type="button" @click="scrollToDocuments">Documents ({{ applicantDocumentCount }})</button>
+        </nav>
         <div class="detail-profile">
           <span class="detail-avatar avatar-mint" aria-hidden="true">
             {{ initials(selectedApplicant) }}
@@ -205,49 +211,75 @@
             {{ selectedApplicant.document_completeness || 'Status not set' }}
           </span>
         </div>
-        <dl class="detail-grid">
-          <div><dt>Date of birth</dt><dd>{{ formatDate(selectedApplicant.date_of_birth) }}</dd></div>
-          <div><dt>Sex</dt><dd>{{ selectedApplicant.sex }}</dd></div>
-          <div><dt>Age</dt><dd>{{ selectedApplicant.age }} years</dd></div>
-          <div><dt>Contact number</dt><dd>{{ selectedApplicant.contact_number }}</dd></div>
-          <div><dt>Barangay</dt><dd>{{ selectedApplicant.barangay }}</dd></div>
-          <div><dt>Civil status</dt><dd>{{ selectedApplicant.civil_status }}</dd></div>
-          <div><dt>Interview result</dt><dd>{{ interviewLabel(selectedApplicant.initial_interview_result) }}</dd></div>
-          <div><dt>Education</dt><dd>{{ selectedApplicant.educational_attainment }}</dd></div>
-          <div><dt>Valid ID</dt><dd>{{ selectedApplicant.valid_id }} — {{ selectedApplicant.valid_id_number }}</dd></div>
-          <div><dt>Residency certificate</dt><dd>{{ selectedApplicant.barangay_residency_certificate ? 'Submitted' : 'Not submitted' }}</dd></div>
-          <div><dt>Passport</dt><dd>{{ selectedApplicant.passport ? selectedApplicant.passport_number || 'Yes' : 'No' }}</dd></div>
-          <div><dt>Passport expiry</dt><dd>{{ formatDate(selectedApplicant.passport_expiry) }}</dd></div>
-          <div><dt>Korean language ability</dt><dd>{{ selectedApplicant.korean_language_ability || '—' }}</dd></div>
-          <div><dt>Farm experience</dt><dd>{{ selectedApplicant.farm_experience ? `${selectedApplicant.farm_experience_duration || 0} ${selectedApplicant.farm_experience_units || ''}` : 'No' }}</dd></div>
-          <div><dt>Farm skills</dt><dd>{{ relationNames(selectedApplicant.farm_skills, 'farmSkill', 'skill_name') }}</dd></div>
-          <div><dt>Farm work</dt><dd>{{ relationNames(selectedApplicant.farm_works, 'farmWork', 'work_name') }}</dd></div>
-          <div><dt>Crops handled</dt><dd>{{ relationNames(selectedApplicant.crops_handled, null, 'crop_name') }}</dd></div>
-          <div><dt>Equipment skills</dt><dd>{{ relationNames(selectedApplicant.equipment_skills, null, 'equipment_skills') }}</dd></div>
-          <div><dt>Previous employment</dt><dd>{{ selectedApplicant.previous_employment || '—' }}</dd></div>
-          <div><dt>Korea work experience</dt><dd>{{ selectedApplicant.korea_work_experience || '—' }}</dd></div>
-          <div><dt>Previous overseas employment</dt><dd>{{ selectedApplicant.previous_overseas_employment || '—' }}</dd></div>
-          <div><dt>Remarks</dt><dd>{{ selectedApplicant.remarks || '—' }}</dd></div>
-        </dl>
-        <section class="detail-records">
+        <section id="applicant-personal" class="detail-section">
+          <h3>Personal information</h3>
+          <dl class="detail-grid">
+            <div><dt>Date of birth</dt><dd>{{ formatDate(selectedApplicant.date_of_birth) }}</dd></div>
+            <div><dt>Age</dt><dd>{{ selectedApplicant.age }} years</dd></div>
+            <div><dt>Sex</dt><dd>{{ selectedApplicant.sex || '—' }}</dd></div>
+            <div><dt>Civil status</dt><dd>{{ selectedApplicant.civil_status || '—' }}</dd></div>
+            <div><dt>Contact number</dt><dd>{{ selectedApplicant.contact_number || '—' }}</dd></div>
+            <div><dt>Barangay</dt><dd>{{ selectedApplicant.barangay || '—' }}</dd></div>
+            <div><dt>Education</dt><dd>{{ selectedApplicant.educational_attainment || '—' }}</dd></div>
+          </dl>
+        </section>
+        <section class="detail-section">
+          <h3>Identity and documents submitted</h3>
+          <dl class="detail-grid">
+            <div><dt>Valid ID</dt><dd>{{ selectedApplicant.valid_id || '—' }} — {{ selectedApplicant.valid_id_number || 'No number' }}</dd></div>
+            <div><dt>Residency certificate</dt><dd>{{ selectedApplicant.barangay_residency_certificate ? 'Submitted' : 'Not submitted' }}</dd></div>
+            <div><dt>Passport</dt><dd>{{ selectedApplicant.passport ? selectedApplicant.passport_number || 'Yes' : 'No' }}</dd></div>
+            <div><dt>Passport expiry</dt><dd>{{ selectedApplicant.passport ? formatDate(selectedApplicant.passport_expiry) : '—' }}</dd></div>
+            <div><dt>Document completeness</dt><dd>{{ selectedApplicant.document_completeness || 'Not set' }}</dd></div>
+          </dl>
+        </section>
+        <section id="applicant-experience" class="detail-section">
+          <h3>Experience and screening</h3>
+          <dl class="detail-grid">
+            <div><dt>Farm experience</dt><dd>{{ selectedApplicant.farm_experience ? `${selectedApplicant.farm_experience_duration || 0} ${selectedApplicant.farm_experience_units || ''}` : 'No' }}</dd></div>
+            <div><dt>Korean language ability</dt><dd>{{ selectedApplicant.korean_language_ability || '—' }}</dd></div>
+            <div><dt>Interview result</dt><dd>{{ interviewLabel(selectedApplicant.initial_interview_result) }}</dd></div>
+            <div><dt>Previous employment</dt><dd>{{ selectedApplicant.previous_employment || '—' }}</dd></div>
+            <div><dt>Korea work experience</dt><dd>{{ selectedApplicant.korea_work_experience || '—' }}</dd></div>
+            <div><dt>Previous overseas employment</dt><dd>{{ selectedApplicant.previous_overseas_employment || '—' }}</dd></div>
+            <div class="detail-wide"><dt>Remarks</dt><dd>{{ selectedApplicant.remarks || '—' }}</dd></div>
+          </dl>
+        </section>
+        <section id="applicant-farm" class="detail-section">
+          <h3>Farm profile</h3>
+          <dl class="detail-grid">
+            <div><dt>Farm skills</dt><dd>{{ relationNames(selectedApplicant.farm_skills, 'farmSkill', 'skill_name') }}</dd></div>
+            <div><dt>Farm work</dt><dd>{{ relationNames(selectedApplicant.farm_works, 'farmWork', 'work_name') }}</dd></div>
+            <div><dt>Crops handled</dt><dd>{{ relationNames(selectedApplicant.crops_handled, null, 'crop_name') }}</dd></div>
+            <div><dt>Equipment skills</dt><dd>{{ relationNames(selectedApplicant.equipment_skills, null, 'equipment_skills') }}</dd></div>
+          </dl>
+        </section>
+        <section class="detail-section">
           <h3>TESDA certifications</h3>
-          <p v-for="record in selectedApplicant.tesda_ncs || []" :key="record.id">
-            {{ record.tesda_nc }}
-            <a v-if="record.tesda_nc_document_url" :href="record.tesda_nc_document_url" target="_blank" rel="noopener">View file</a>
-          </p>
-          <p v-if="!selectedApplicant.tesda_ncs || selectedApplicant.tesda_ncs.length === 0">No TESDA certifications recorded.</p>
-          <h3>Relevant training</h3>
-          <p v-for="record in selectedApplicant.relevant_trainings || []" :key="record.id">
-            {{ record.training_name }}
-            <a v-if="record.training_document_url" :href="record.training_document_url" target="_blank" rel="noopener">View file</a>
-          </p>
-          <p v-if="!selectedApplicant.relevant_trainings || selectedApplicant.relevant_trainings.length === 0">No relevant training recorded.</p>
-          <h3>Applicant documents</h3>
-          <div class="document-links">
-            <template v-for="(url, name) in selectedApplicant.document_urls" :key="name">
-              <a v-if="url" :href="url" target="_blank" rel="noopener">{{ documentLabel(name) }}</a>
-            </template>
+          <div class="document-card-grid">
+            <article v-for="record in selectedApplicant.tesda_ncs || []" :key="record.id" class="document-card">
+              <h4>{{ record.tesda_nc }}</h4>
+              <DocumentPreview :document="record.tesda_nc_document_details" />
+            </article>
+            <p v-if="!selectedApplicant.tesda_ncs?.length" class="detail-empty">No TESDA certifications recorded.</p>
           </div>
+          <h3>Relevant training</h3>
+          <div class="document-card-grid">
+            <article v-for="record in selectedApplicant.relevant_trainings || []" :key="record.id" class="document-card">
+              <h4>{{ record.training_name }}</h4>
+              <DocumentPreview :document="record.training_document_details" />
+            </article>
+            <p v-if="!selectedApplicant.relevant_trainings?.length" class="detail-empty">No relevant training recorded.</p>
+          </div>
+        </section>
+        <section ref="applicantDocuments" class="detail-section document-section">
+          <h3>Applicant documents <span>{{ applicantDocumentCount }}</span></h3>
+          <div v-if="selectedApplicant.document_details?.length" class="document-card-grid">
+            <article v-for="document in selectedApplicant.document_details" :key="document.url" class="document-card">
+              <DocumentPreview :document="document" />
+            </article>
+          </div>
+          <p v-else class="detail-empty">No applicant documents have been uploaded.</p>
         </section>
         <div class="detail-footer">
           <span>Created {{ formatDate(selectedApplicant.created_at) }}</span>
@@ -316,7 +348,16 @@
             <label>Korean language ability<input v-model.trim="form.korean_language_ability" maxlength="255"></label>
             <label>Korean ability proof image or PDF<input type="file" accept="image/*,.pdf" @change="setApplicantFile($event, 'korean_language_ability_document')"></label>
             <label>Document completeness<select v-model="form.document_completeness"><option value="">Not set</option><option value="complete">Complete</option><option value="incomplete">Incomplete</option></select></label>
-            <label>Initial interview result<select v-model="form.initial_interview_result"><option value="">Not set</option><option value="qualified_for_further_screening">Qualified for further screening</option><option value="for_verification">For verification</option><option value="not_qualified">Not qualified</option></select></label>
+            <label>Initial interview result
+              <select v-model="form.initial_interview_result">
+                <option value="">Not set</option>
+                <option value="qualified_for_further_screening">Qualified for further screening</option>
+                <option value="place_or_hired">Place or Hired</option>
+                <option value="referred">Referred</option>
+                <option value="for_verification">For verification</option>
+                <option value="not_qualified">Not qualified</option>
+              </select>
+            </label>
             <label>Remarks<textarea v-model="form.remarks" rows="2"></textarea></label>
           </div>
 
@@ -403,6 +444,78 @@ import {
   getKoreaApplicants,
   updateKoreaApplicant,
 } from '@/controller/KoreaApplicantController';
+import api from '@/controller/axios';
+
+const DocumentPreview = {
+  props: {
+    document: { type: Object, default: null },
+  },
+  data() {
+    return {
+      previewUrl: null,
+      loading: false,
+      failed: false,
+      requestId: 0,
+    };
+  },
+  mounted() {
+    this.loadDocument();
+  },
+  beforeUnmount() {
+    this.requestId += 1;
+    this.revokePreviewUrl();
+  },
+  watch: {
+    'document.url'() {
+      this.loadDocument();
+    },
+  },
+  methods: {
+    revokePreviewUrl() {
+      if (this.previewUrl) URL.revokeObjectURL(this.previewUrl);
+      this.previewUrl = null;
+    },
+    async loadDocument() {
+      const requestId = ++this.requestId;
+      this.revokePreviewUrl();
+      this.failed = false;
+      if (!this.document?.url) return;
+
+      this.loading = true;
+      try {
+        const response = await api.get(this.document.url, { responseType: 'blob' });
+        if (requestId !== this.requestId) return;
+        this.previewUrl = URL.createObjectURL(response.data);
+      } catch (error) {
+        if (requestId === this.requestId) {
+          this.failed = true;
+          console.error('Unable to load applicant document preview:', error);
+        }
+      } finally {
+        if (requestId === this.requestId) this.loading = false;
+      }
+    },
+  },
+  template: `
+    <div v-if="document" class="document-preview">
+      <a v-if="previewUrl" :href="previewUrl" target="_blank" rel="noopener" class="document-preview-link">
+        <img v-if="document.mime_type && document.mime_type.startsWith('image/')" :src="previewUrl" :alt="document.label" loading="lazy">
+        <span v-else class="document-file-icon" aria-hidden="true"><i class="bi bi-file-earmark-text"></i></span>
+        <span class="document-preview-copy">
+          <strong>{{ document.label }}</strong>
+          <small>{{ document.file_name }}</small>
+          <span>Open document <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></span>
+        </span>
+      </a>
+      <p v-else-if="loading" class="document-unavailable">Loading document…</p>
+      <div v-else-if="failed" class="document-load-error" role="status">
+        <span>Document preview could not be loaded.</span>
+        <button type="button" @click="loadDocument">Retry</button>
+      </div>
+    </div>
+    <p v-else class="document-unavailable">No file uploaded.</p>
+  `,
+};
 
 const validIdTypes = [
   'Philippine National ID (PhilID/ePhilID)',
@@ -449,6 +562,7 @@ function requestError(error) {
 
 export default {
   name: 'KoreaApplicants',
+  components: { DocumentPreview },
   data() {
     return {
       applicants: [],
@@ -477,6 +591,14 @@ export default {
   },
   computed: {
     pageCount() { return Math.max(1, this.pagination.last_page || 1); },
+    applicantDocumentCount() {
+      const applicantFiles = this.selectedApplicant?.document_details?.length || 0;
+      const trainingFiles = (this.selectedApplicant?.relevant_trainings || [])
+        .filter((record) => record.training_document_details).length;
+      const tesdaFiles = (this.selectedApplicant?.tesda_ncs || [])
+        .filter((record) => record.tesda_nc_document_details).length;
+      return applicantFiles + trainingFiles + tesdaFiles;
+    },
     visiblePages() {
       const first = Math.max(1, this.currentPage - 2);
       const last = Math.min(this.pageCount, first + 4);
@@ -556,10 +678,13 @@ export default {
       return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
     },
     interviewLabel(value) {
-      return { qualified_for_further_screening: 'Qualified for further screening', for_verification: 'For verification', not_qualified: 'Not qualified' }[value] || 'Not set';
+      return { qualified_for_further_screening: 'Qualified for further screening',place_or_hired: "Place or Hired", Referred: "Referred", for_verification: 'For verification', not_qualified: 'Not qualified' }[value] || 'Not set';
     },
     statusClass(status) { return status === 'complete' ? 'status-green' : status === 'incomplete' ? 'status-amber' : 'status-blue'; },
     documentLabel(name) { return name.replaceAll('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()); },
+    scrollToDocuments() {
+      this.$refs.applicantDocuments?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
     async openDetails(id) {
       this.errorMessage = '';
       try { this.selectedApplicant = (await getKoreaApplicantById(id)).data; }
@@ -1270,6 +1395,13 @@ export default {
   box-shadow: 0 24px 80px rgba(23, 43, 77, 0.2);
 }
 
+.applicant-detail-dialog {
+  width: min(920px, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
 .detail-header {
   display: flex;
   justify-content: space-between;
@@ -1335,6 +1467,40 @@ export default {
   font-size: 0.66rem;
 }
 
+.detail-jump-nav {
+  position: sticky;
+  z-index: 2;
+  top: -1.35rem;
+  margin: 0 -1.35rem 1rem;
+  padding: 0.65rem 1.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  border-bottom: 1px solid #edf0f3;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.detail-jump-nav a,
+.detail-jump-nav button {
+  min-height: 31px;
+  padding: 0.35rem 0.6rem;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 6px;
+  background: #f4f7f6;
+  color: #397863;
+  font: inherit;
+  font-size: 0.66rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.detail-jump-nav a:hover,
+.detail-jump-nav button:hover {
+  background: #eaf3ef;
+}
+
 .status-pill {
   margin-left: auto;
   padding: 0.32rem 0.5rem;
@@ -1351,8 +1517,8 @@ export default {
 .detail-grid {
   margin: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem 1.1rem;
 }
 
 .detail-grid div {
@@ -1371,6 +1537,148 @@ export default {
   color: #46566b;
   font-size: 0.72rem;
   font-weight: 550;
+  overflow-wrap: anywhere;
+}
+
+.detail-section {
+  margin-top: 1.2rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid #edf0f3;
+  scroll-margin-top: 3.5rem;
+}
+
+.detail-section > h3 {
+  margin: 0 0 0.8rem;
+  color: #344258;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.detail-section > h3 span {
+  margin-left: 0.3rem;
+  color: #8793a2;
+  font-size: 0.67rem;
+  font-weight: 500;
+}
+
+.detail-wide {
+  grid-column: 1 / -1;
+}
+
+.document-section {
+  scroll-margin-top: 3.5rem;
+}
+
+.document-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.document-card {
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid #e9edf1;
+  border-radius: 9px;
+  background: #fcfdfd;
+}
+
+.document-card h4 {
+  margin: 0 0 0.5rem;
+  color: #526176;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.document-preview-link {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.document-preview-link > img,
+.document-file-icon {
+  width: 70px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid #e9edf1;
+  border-radius: 6px;
+  background: #f2f5f7;
+  color: #648474;
+}
+
+.document-preview-link > img {
+  object-fit: cover;
+}
+
+.document-file-icon {
+  font-size: 1.4rem;
+}
+
+.document-preview-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.document-preview-copy strong,
+.document-preview-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-preview-copy strong {
+  color: #46566b;
+  font-size: 0.67rem;
+  font-weight: 600;
+}
+
+.document-preview-copy small {
+  color: #929dad;
+  font-size: 0.59rem;
+}
+
+.document-preview-copy > span {
+  color: #397863;
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+
+.document-load-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #954343;
+  font-size: 0.63rem;
+}
+
+.document-load-error button {
+  padding: 0.25rem 0.45rem;
+  border: 1px solid #e8caca;
+  border-radius: 5px;
+  background: #fff;
+  color: #954343;
+  font: inherit;
+  cursor: pointer;
+}
+
+.document-preview-link:hover .document-preview-copy > span {
+  text-decoration: underline;
+}
+
+.detail-empty,
+.document-unavailable {
+  margin: 0;
+  color: #929dad;
+  font-size: 0.66rem;
 }
 
 .detail-records {
@@ -1771,6 +2079,17 @@ export default {
     padding: 1.1rem;
   }
 
+  .detail-jump-nav {
+    top: -1.1rem;
+    margin-inline: -1.1rem;
+    padding-inline: 1.1rem;
+  }
+
+  .detail-grid,
+  .document-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .form-grid,
   .designation-row {
     grid-template-columns: 1fr;
@@ -1786,6 +2105,13 @@ export default {
 
   .detail-profile .status-pill {
     margin-left: 3.2rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .detail-grid,
+  .document-card-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
